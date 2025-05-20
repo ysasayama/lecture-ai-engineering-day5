@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 import time
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier # モデルの比較用に追加
+from xgboost import XGBClassifier  # モデルの比較用に追加
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.impute import SimpleImputer
@@ -206,10 +206,11 @@ def test_model_performance(sample_data, preprocessor):
     predictions1 = model1.predict(X_test)
     predictions2 = model2.predict(X_test)
 
-    #　sccoreを計算
+    # 　sccoreを計算
     score1 = accuracy_score(y_test, predictions1)
     score2 = accuracy_score(y_test, predictions2)
 
     # 比較モデル（model2）がベースラインモデル（model1）よりも精度が高いことを確認
-    assert score2 >= score1, f"XGBoostの精度がベースラインより劣化しています: {score2:.3f} < {score1:.3f}"
-  
+    assert (
+        score2 >= score1
+    ), f"XGBoostの精度がベースラインより劣化しています: {score2:.3f} < {score1:.3f}"
