@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import time
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier  # モデルの比較用に追加
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.impute import SimpleImputer
@@ -171,3 +172,45 @@ def test_model_reproducibility(sample_data, preprocessor):
     assert np.array_equal(
         predictions1, predictions2
     ), "モデルの予測結果に再現性がありません"
+
+
+def test_model_performance(sample_data, preprocessor):
+    """モデルの性能を比較"""
+    # データの分割
+    X = sample_data.drop("Survived", axis=1)
+    y = sample_data["Survived"].astype(int)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # 同じパラメータで２つのモデルを作成
+    model1 = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", RandomForestClassifier(n_estimators=100, random_state=42)),
+        ]
+    )
+
+    model2 = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", XGBClassifier(n_estimators=100, random_state=42)),
+        ]
+    )
+
+    # 学習
+    model1.fit(X_train, y_train)
+    model2.fit(X_train, y_train)
+
+    # 各モデルの予測
+    predictions1 = model1.predict(X_test)
+    predictions2 = model2.predict(X_test)
+
+    # 　sccoreを計算
+    score1 = accuracy_score(y_test, predictions1)
+    score2 = accuracy_score(y_test, predictions2)
+
+    # 比較モデル（model2）がベースラインモデル（model1）よりも精度が高いことを確認
+    assert (
+        score2 >= score1
+    ), f"XGBoostの精度がベースラインより劣化しています: {score2:.3f} < {score1:.3f}"
